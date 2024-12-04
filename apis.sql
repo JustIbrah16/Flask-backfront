@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2024 a las 23:16:55
+-- Tiempo de generación: 04-12-2024 a las 21:08:03
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -44,6 +44,14 @@ CREATE TABLE `permisos` (
   `fk_grupo` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+--
+-- Volcado de datos para la tabla `permisos`
+--
+
+INSERT INTO `permisos` (`id`, `nombre`, `fk_grupo`) VALUES
+(1, 'Acceso Mis Proyectos', 1),
+(2, 'Acceso Base de Tickets', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -67,6 +75,27 @@ INSERT INTO `roles` (`id`, `nombre`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `rol_permisos`
+--
+
+CREATE TABLE `rol_permisos` (
+  `id` int(11) NOT NULL,
+  `fk_rol` int(2) NOT NULL,
+  `fk_permiso` int(2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `rol_permisos`
+--
+
+INSERT INTO `rol_permisos` (`id`, `fk_rol`, `fk_permiso`) VALUES
+(4, 3, 1),
+(5, 3, 2),
+(6, 2, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `users`
 --
 
@@ -76,6 +105,13 @@ CREATE TABLE `users` (
   `password` varchar(100) DEFAULT NULL,
   `fk_rol` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Volcado de datos para la tabla `users`
+--
+
+INSERT INTO `users` (`id`, `nombre`, `password`, `fk_rol`) VALUES
+(1, 'testuser', '1234', 3);
 
 --
 -- Índices para tablas volcadas
@@ -100,6 +136,14 @@ ALTER TABLE `roles`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indices de la tabla `rol_permisos`
+--
+ALTER TABLE `rol_permisos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_rol` (`fk_rol`),
+  ADD KEY `fk_permiso` (`fk_permiso`);
+
+--
 -- Indices de la tabla `users`
 --
 ALTER TABLE `users`
@@ -120,7 +164,7 @@ ALTER TABLE `grupos`
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id` int(2) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(2) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -129,14 +173,27 @@ ALTER TABLE `roles`
   MODIFY `id` int(2) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT de la tabla `rol_permisos`
+--
+ALTER TABLE `rol_permisos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(2) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(2) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `rol_permisos`
+--
+ALTER TABLE `rol_permisos`
+  ADD CONSTRAINT `rol_permisos_ibfk_1` FOREIGN KEY (`fk_rol`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `rol_permisos_ibfk_2` FOREIGN KEY (`fk_permiso`) REFERENCES `permisos` (`id`);
 
 --
 -- Filtros para la tabla `users`

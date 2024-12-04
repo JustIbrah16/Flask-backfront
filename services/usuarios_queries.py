@@ -1,5 +1,10 @@
 from models.Users import Usuarios
-from utils.db import db
-
 class User_queries:
-    pass
+
+    @staticmethod
+    def login(username, password):
+        usuario = Usuarios.query.filter_by(nombre=username).first()
+        if usuario and usuario.password == password:  
+            return usuario
+        return None
+

@@ -1,16 +1,23 @@
-from flask import Flask
+from flask import Flask, session
 from utils.db import db
-import pymysql
 from routes.usuarios import usuarios
-pymysql.install_as_MySQLdb()
+from routes.base_tickets import base_tickets
+from routes.mis_proyectos import mis_proyectos
+from models.Roles import Roles
+from models.Permisos import Permisos
+from models.Grupos import Grupos
+from models.Users import Usuarios
 
 app = Flask(__name__)
 
 app.secret_key = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost:3306/apis'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost:3306/apis'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
 
 db.init_app(app)
 
-# blueprints
 app.register_blueprint(usuarios)
+app.register_blueprint(mis_proyectos)
+app.register_blueprint(base_tickets)
+
