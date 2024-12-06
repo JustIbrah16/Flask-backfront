@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-12-2024 a las 21:08:03
+-- Tiempo de generación: 06-12-2024 a las 21:09:24
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -55,6 +55,30 @@ INSERT INTO `permisos` (`id`, `nombre`, `fk_grupo`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `proyectos`
+--
+
+CREATE TABLE `proyectos` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `usuario_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `proyectos`
+--
+
+INSERT INTO `proyectos` (`id`, `nombre`, `descripcion`, `usuario_id`) VALUES
+(1, 'Proyecto Alpha', 'Descripción del Proyecto Alpha', 1),
+(2, 'Proyecto Beta', 'Descripción del Proyecto Beta', 1),
+(3, 'Proyecto Gamma', 'Descripción del Proyecto Gamma', 1),
+(4, 'Proyecto Delta', 'Descripción del Proyecto Delta', 1),
+(5, 'Proyecto Omega', 'Descripción del Proyecto Omega', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `roles`
 --
 
@@ -89,9 +113,9 @@ CREATE TABLE `rol_permisos` (
 --
 
 INSERT INTO `rol_permisos` (`id`, `fk_rol`, `fk_permiso`) VALUES
-(4, 3, 1),
-(5, 3, 2),
-(6, 2, 1);
+(1, 3, 1),
+(2, 3, 2),
+(3, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -128,6 +152,13 @@ ALTER TABLE `grupos`
 --
 ALTER TABLE `permisos`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `proyectos`
+--
+ALTER TABLE `proyectos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `usuario_id` (`usuario_id`);
 
 --
 -- Indices de la tabla `roles`
@@ -167,6 +198,12 @@ ALTER TABLE `permisos`
   MODIFY `id` int(2) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT de la tabla `proyectos`
+--
+ALTER TABLE `proyectos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -187,6 +224,12 @@ ALTER TABLE `users`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `proyectos`
+--
+ALTER TABLE `proyectos`
+  ADD CONSTRAINT `proyectos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `rol_permisos`
