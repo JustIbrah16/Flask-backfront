@@ -21,7 +21,7 @@ def login():
             "message": f"Bienvenido, {usuario.nombre}!",
             "redirect": "/inicio"
         }), 200
-    return jsonify({"error": "Datos incorrectas"}), 401
+    return jsonify({"error": "Datos incorrectos"}), 401
 
 @usuarios.route('/logout', methods=['POST'])
 def logout():
