@@ -7,6 +7,8 @@ from models.Roles import Roles
 from models.Permisos import Permisos
 from models.Grupos import Grupos
 from models.Users import Usuarios
+from models.Tickets import Tickets, Adjuntos
+
 
 app = Flask(__name__)
 

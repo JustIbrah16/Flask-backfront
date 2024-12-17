@@ -44,7 +44,7 @@ def listar_proyectos():
         return jsonify({"error": "Acceso denegado a Mis Proyectos"}), 403
 
     nombre = request.args.get('nombre')
-    proyectos = ProyectosQueries.obtener_proyectos(usuario_id, nombre)
+    proyectos = ProyectosQueries.obtener_proyectos(usuario_id=usuario_id, nombre=nombre)
 
     if not nombre and not proyectos:
         proyectos = ProyectosQueries.obtener_todos_proyectos()
