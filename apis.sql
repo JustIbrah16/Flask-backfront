@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-12-2024 a las 21:09:24
+-- Tiempo de generación: 17-12-2024 a las 21:40:49
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,19 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `apis`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `adjuntos`
+--
+
+CREATE TABLE `adjuntos` (
+  `id` int(11) NOT NULL,
+  `archivo_nombre` varchar(255) NOT NULL,
+  `archivo_ruta` varchar(255) NOT NULL,
+  `fk_ticket` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -70,11 +83,11 @@ CREATE TABLE `proyectos` (
 --
 
 INSERT INTO `proyectos` (`id`, `nombre`, `descripcion`, `usuario_id`) VALUES
-(1, 'Proyecto Alpha', 'Descripción del Proyecto Alpha', 1),
-(2, 'Proyecto Beta', 'Descripción del Proyecto Beta', 1),
-(3, 'Proyecto Gamma', 'Descripción del Proyecto Gamma', 1),
-(4, 'Proyecto Delta', 'Descripción del Proyecto Delta', 1),
-(5, 'Proyecto Omega', 'Descripción del Proyecto Omega', 1);
+(1, 'Bancoomeva', 'Banca Xpress+', 1),
+(2, 'Allianz', 'Allianz Plataforma PVI de formularios FCC', 1),
+(3, 'Seguros mundial', 'Mundial pesados', 1),
+(4, 'Seguro Peludo', 'Seguro Peludo', 1),
+(5, 'Wiipol', 'Wiipol', 1);
 
 -- --------------------------------------------------------
 
@@ -120,6 +133,53 @@ INSERT INTO `rol_permisos` (`id`, `fk_rol`, `fk_permiso`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `tickets`
+--
+
+CREATE TABLE `tickets` (
+  `id` int(11) NOT NULL,
+  `titulo` varchar(255) NOT NULL,
+  `comentario` text DEFAULT NULL,
+  `fk_usuario` int(2) NOT NULL,
+  `fk_proyecto` int(11) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tickets`
+--
+
+INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`) VALUES
+(1, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 15:55:06'),
+(2, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 16:29:21'),
+(3, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 19:53:50'),
+(4, 'TicketPrueba', 'Este es un comentario de prueba', 1, 5, '2024-12-17 19:53:59');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ticket_archivos`
+--
+
+CREATE TABLE `ticket_archivos` (
+  `id` int(11) NOT NULL,
+  `fk_ticket` int(11) NOT NULL,
+  `nombre_archivo` varchar(255) NOT NULL,
+  `ruta_archivo` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `ticket_archivos`
+--
+
+INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archivo`) VALUES
+(1, 1, '77722.pdf', 'uploads/77722.pdf'),
+(3, 3, '77722.pdf', 'uploads/77722.pdf'),
+(4, 4, '77722.pdf', 'uploads/77722.pdf');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `users`
 --
 
@@ -135,11 +195,18 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nombre`, `password`, `fk_rol`) VALUES
-(1, 'testuser', '1234', 3);
+(1, 'reddeskuser001', '1234', 3);
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `adjuntos`
+--
+ALTER TABLE `adjuntos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_ticket` (`fk_ticket`);
 
 --
 -- Indices de la tabla `grupos`
@@ -175,6 +242,21 @@ ALTER TABLE `rol_permisos`
   ADD KEY `fk_permiso` (`fk_permiso`);
 
 --
+-- Indices de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_usuario` (`fk_usuario`),
+  ADD KEY `fk_proyecto` (`fk_proyecto`);
+
+--
+-- Indices de la tabla `ticket_archivos`
+--
+ALTER TABLE `ticket_archivos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_ticket` (`fk_ticket`);
+
+--
 -- Indices de la tabla `users`
 --
 ALTER TABLE `users`
@@ -184,6 +266,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
+
+--
+-- AUTO_INCREMENT de la tabla `adjuntos`
+--
+ALTER TABLE `adjuntos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `grupos`
@@ -216,6 +304,18 @@ ALTER TABLE `rol_permisos`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT de la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT de la tabla `ticket_archivos`
+--
+ALTER TABLE `ticket_archivos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
@@ -224,6 +324,12 @@ ALTER TABLE `users`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `adjuntos`
+--
+ALTER TABLE `adjuntos`
+  ADD CONSTRAINT `adjuntos_ibfk_1` FOREIGN KEY (`fk_ticket`) REFERENCES `tickets` (`id`);
 
 --
 -- Filtros para la tabla `proyectos`
@@ -237,6 +343,19 @@ ALTER TABLE `proyectos`
 ALTER TABLE `rol_permisos`
   ADD CONSTRAINT `rol_permisos_ibfk_1` FOREIGN KEY (`fk_rol`) REFERENCES `roles` (`id`),
   ADD CONSTRAINT `rol_permisos_ibfk_2` FOREIGN KEY (`fk_permiso`) REFERENCES `permisos` (`id`);
+
+--
+-- Filtros para la tabla `tickets`
+--
+ALTER TABLE `tickets`
+  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`fk_proyecto`) REFERENCES `proyectos` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `ticket_archivos`
+--
+ALTER TABLE `ticket_archivos`
+  ADD CONSTRAINT `ticket_archivos_ibfk_1` FOREIGN KEY (`fk_ticket`) REFERENCES `tickets` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `users`
