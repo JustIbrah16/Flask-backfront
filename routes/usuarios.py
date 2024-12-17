@@ -35,6 +35,7 @@ def inicio():
         return jsonify({"error": "Usuario no autenticado"}), 401
 
     opciones = [
+        {"nombre": "Crear Ticket", "endpoint": "/tickets/nuevo"},
         {"nombre": "Mis Proyectos", "endpoint": "/mis_proyectos/acceso"},
         {"nombre": "Base de Tickets", "endpoint": "/base_tickets"}
     ]

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-12-2024 a las 00:00:13
+-- Tiempo de generación: 17-12-2024 a las 22:49:34
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -43,7 +43,7 @@ CREATE TABLE `adjuntos` (
 CREATE TABLE `grupos` (
   `id` int(2) NOT NULL,
   `nombre` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -55,7 +55,7 @@ CREATE TABLE `permisos` (
   `id` int(2) NOT NULL,
   `nombre` varchar(100) DEFAULT NULL,
   `fk_grupo` int(2) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Volcado de datos para la tabla `permisos`
@@ -99,7 +99,7 @@ INSERT INTO `proyectos` (`id`, `nombre`, `descripcion`, `usuario_id`) VALUES
 CREATE TABLE `roles` (
   `id` int(2) NOT NULL,
   `nombre` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Volcado de datos para la tabla `roles`
@@ -131,7 +131,8 @@ INSERT INTO `rol_permisos` (`id`, `fk_rol`, `fk_permiso`) VALUES
 (2, 3, 2),
 (3, 2, 1),
 (7, 3, 3),
-(8, 2, 3);
+(8, 2, 3),
+(9, 3, 3);
 
 -- --------------------------------------------------------
 
@@ -154,9 +155,9 @@ CREATE TABLE `tickets` (
 
 INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`) VALUES
 (1, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 15:55:06'),
-(4, 'TicketPrueba', 'Este es un comentario de prueba', 1, 5, '2024-12-17 19:53:59'),
-(5, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 4, '2024-12-17 22:07:43'),
-(7, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 1, '2024-12-17 22:59:19');
+(2, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 16:29:21'),
+(3, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 19:53:50'),
+(4, 'TicketPrueba', 'Este es un comentario de prueba', 1, 5, '2024-12-17 19:53:59');
 
 -- --------------------------------------------------------
 
@@ -177,8 +178,8 @@ CREATE TABLE `ticket_archivos` (
 
 INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archivo`) VALUES
 (1, 1, '77722.pdf', 'uploads/77722.pdf'),
-(2, 5, 'apis (3).sql', 'uploads/apis (3).sql'),
-(3, 7, 'apis (3).sql', 'uploads/apis (3).sql');
+(3, 3, '77722.pdf', 'uploads/77722.pdf'),
+(4, 4, '77722.pdf', 'uploads/77722.pdf');
 
 -- --------------------------------------------------------
 
@@ -191,7 +192,7 @@ CREATE TABLE `users` (
   `nombre` varchar(100) DEFAULT NULL,
   `password` varchar(100) DEFAULT NULL,
   `fk_rol` int(2) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Volcado de datos para la tabla `users`
@@ -310,13 +311,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

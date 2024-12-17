@@ -2,6 +2,7 @@ from flask import Blueprint, session, jsonify, request
 from services.roles_queries import RolesQueries
 from services.tickets_queries import TicketsQueries
 from services.proyecto_queries import ProyectosQueries
+from models.Tickets import Tickets
 import os
 
 base_tickets = Blueprint('base_tickets', __name__)
@@ -18,13 +19,30 @@ def acceso_base_tickets():
     if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Base de Tickets'):
         return jsonify({"error": "Acceso denegado a Base de Tickets"}), 403
 
-    return jsonify({"message": "Bienvenido a base de tickets"}), 200
+    tickets = Tickets.query.all()
+
+    if not tickets:
+        return jsonify({"message": "No se encontraron tickets"}), 404
+
+    tickets_json = [
+        {"id": ticket.id, "titulo": ticket.titulo, "comentario": ticket.comentario, "proyecto_id": ticket.fk_proyecto, "usuario_id": ticket.fk_usuario}
+        for ticket in tickets
+    ]
+    
+    return jsonify({
+        "message": "Bienvenido a base de tickets",
+        "tickets": tickets_json
+    }), 200
+
 
 @base_tickets.route('/tickets/nuevo', methods=['POST'])
 def crear_ticket():
     usuario_id = session.get('user_id')
     if not usuario_id:
         return jsonify({"error": "Usuario no autenticado"}), 401
+    
+    if not RolesQueries.tiene_permiso(usuario_id, 'Crear Tickets'):
+        return jsonify({"error": "No tiene permisos para crear tickets"}), 403
     
     data = request.form
     titulo = data.get('titulo')
@@ -63,4 +81,5 @@ def crear_ticket():
         "message": "Ticket creado exitosamente", 
         "ticket_id": ticket.id 
     }), 201   
+
 
