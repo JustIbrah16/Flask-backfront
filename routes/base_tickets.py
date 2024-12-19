@@ -1,4 +1,4 @@
-from flask import Blueprint, session, jsonify, request, send_from_directory
+from flask import Blueprint, session, jsonify, request, send_from_directory, url_for
 from services.roles_queries import RolesQueries
 from services.tickets_queries import TicketsQueries
 from services.proyecto_queries import ProyectosQueries
@@ -33,11 +33,11 @@ def acceso_base_tickets():
             "comentario": ticket.comentario,
             "proyecto": ticket.proyecto.nombre,
             "usuario": ticket.usuario.nombre,
-            "archivos":[
+            "archivos": [
                 {
                     "id": adjunto.id,
                     "nombre_archivo": adjunto.nombre_archivo,
-                    "ruta_archivo": adjunto.ruta_archivo
+                    "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)  
                 }
                 for adjunto in ticket.archivos
             ]
@@ -49,6 +49,15 @@ def acceso_base_tickets():
         "message": "Bienvenido a base de tickets",
         "tickets": tickets_json
     }), 200
+
+
+@base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
+def servir_archivo(nombre_archivo):
+    try:
+        return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False)
+    except FileNotFoundError:
+        return jsonify({"error": "Archivo no encontrado"}), 404
+
 
 
 @base_tickets.route('/tickets/nuevo', methods=['POST'])
