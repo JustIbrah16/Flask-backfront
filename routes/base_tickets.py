@@ -4,6 +4,7 @@ from services.tickets_queries import TicketsQueries
 from services.proyecto_queries import ProyectosQueries
 from models.Tickets import Tickets
 from models.proyectos import Proyectos
+from models.Users import Usuarios
 import os
 
 
@@ -24,7 +25,15 @@ def acceso_base_tickets():
     tickets = Tickets.query.all()
 
     if not tickets:
-        return jsonify({"message": "No se encontraron tickets"}), 404
+        return jsonify({
+            "message": "No se encontraron tickets",
+            "opciones": [
+                {
+                    "endpoint": "/base_tickets/filtrar",
+                    "nombre": "Filtrar Tickets"
+                }
+            ]
+        }), 404
 
     tickets_json = [
         {
@@ -46,8 +55,14 @@ def acceso_base_tickets():
     ]
     
     return jsonify({
-        "message": "Bienvenido a base de tickets",
-        "tickets": tickets_json
+        "message": "Bienvenido a Base de Tickets",
+        "tickets": tickets_json,
+        "opciones": [
+            {
+                "endpoint": "/base_tickets/filtrar",
+                "nombre": "Filtrar Tickets"
+            }
+        ]
     }), 200
 
 
@@ -108,6 +123,7 @@ def crear_ticket():
     }), 201
 
 
+
 # para probar en postman:
 # Selecciona la opción form-data en body.
 # Incluye los siguientes campos:
@@ -116,12 +132,52 @@ def crear_ticket():
 # nombre_proyecto (Texto): El nombre del proyecto(ej: Bancoomeva).
 # archivos (Archivo, opcional): hasta 10 mb
 
-# @base_tickets.route('/archivos/<path:nombre_archivo>', methods=['GET'])
-# def servir_archivo(nombre_archivo):
-#     try:
-#         ruta_completa = os.path.join(UPLOAD_FOLDER, nombre_archivo)
-#         if not os.path.exists(ruta_completa):
-#             return jsonify({"error": "Archivo no encontrado"}), 404
-#         return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False)
-#     except Exception as e:
-#         return jsonify({"error": f"Error al servir el archivo: {str(e)}"}), 500
+@base_tickets.route('/base_tickets/filtrar', methods=['GET'])
+def filtrar_tickets():
+    usuario_id = session.get('user_id')
+    if not usuario_id:
+        return jsonify({"error", "Usuario no autenticado"}), 401
+    
+    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Base de Tickets'):
+        return jsonify({"error": "Acceso denegado a Base de Tickets"}), 403
+    
+    titulo = request.args.get('titulo')
+    nombre_proyecto = request.args.get('nombre_proyecto')
+    nombre_usuario = request.args.get('nombre_usuario')
+
+    query = Tickets.query
+    if titulo:
+        query = query.filter(Tickets.titulo.ilike(f"%{titulo}%"))
+    if nombre_proyecto:
+        query = query.join(Proyectos).filter(Proyectos.nombre.ilike(f"%{nombre_proyecto}%"))
+    if nombre_usuario:
+        query = query.join(Usuarios).filter(Usuarios.nombre.ilike(f"%{nombre_usuario}%"))
+    
+    tickets = query.all()
+
+    if not tickets:
+        return jsonify({"message": "No se encontraron tickets"}), 404
+    
+    tickets_json = [
+        {
+            "id": ticket.id,
+            "titulo": ticket.titulo,
+            "comentario": ticket.comentario,
+            "proyecto": ticket.proyecto.nombre,
+            "usuario": ticket.usuario.nombre,
+            "archivos": [
+                {
+                    "id": adjunto.id,
+                    "nombre_archivo": adjunto.nombre_archivo,
+                    "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)  
+                }
+                for adjunto in ticket.archivos
+            ]
+        }
+        for ticket in tickets
+    ]
+    
+    return jsonify({
+        "message": "Filtrado exitoso",
+        "tickets": tickets_json
+    }), 200
