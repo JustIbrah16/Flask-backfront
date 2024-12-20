@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-12-2024 a las 00:00:13
+-- Tiempo de generación: 20-12-2024 a las 18:48:13
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,19 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `apis`
 --
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `adjuntos`
---
-
-CREATE TABLE `adjuntos` (
-  `id` int(11) NOT NULL,
-  `archivo_nombre` varchar(255) NOT NULL,
-  `archivo_ruta` varchar(255) NOT NULL,
-  `fk_ticket` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -156,7 +143,9 @@ INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`
 (1, 'TicketPrueba', 'Este es un comentario de prueba', 1, 1, '2024-12-17 15:55:06'),
 (4, 'TicketPrueba', 'Este es un comentario de prueba', 1, 5, '2024-12-17 19:53:59'),
 (5, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 4, '2024-12-17 22:07:43'),
-(7, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 1, '2024-12-17 22:59:19');
+(7, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 1, '2024-12-17 22:59:19'),
+(8, 'Firma de documentos', 'Se requiere la firma digital en el documento', 1, 1, '2024-12-18 20:33:16'),
+(9, 'Requerimientos de documentos firmados', 'Por favor adjuntar los docuementos firmados que han sido requeridos.', 1, 2, '2024-12-18 20:50:04');
 
 -- --------------------------------------------------------
 
@@ -178,7 +167,9 @@ CREATE TABLE `ticket_archivos` (
 INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archivo`) VALUES
 (1, 1, '77722.pdf', 'uploads/77722.pdf'),
 (2, 5, 'apis (3).sql', 'uploads/apis (3).sql'),
-(3, 7, 'apis (3).sql', 'uploads/apis (3).sql');
+(3, 7, 'apis (3).sql', 'uploads/apis (3).sql'),
+(4, 8, 'logo-bancolombia-2 (1).png', 'uploads/logo-bancolombia-2 (1).png'),
+(5, 9, 'AZ_Logo_MSTeams_257x193px.png', 'uploads/AZ_Logo_MSTeams_257x193px.png');
 
 -- --------------------------------------------------------
 
@@ -203,13 +194,6 @@ INSERT INTO `users` (`id`, `nombre`, `password`, `fk_rol`) VALUES
 --
 -- Índices para tablas volcadas
 --
-
---
--- Indices de la tabla `adjuntos`
---
-ALTER TABLE `adjuntos`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_ticket` (`fk_ticket`);
 
 --
 -- Indices de la tabla `grupos`
@@ -271,12 +255,6 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT de la tabla `adjuntos`
---
-ALTER TABLE `adjuntos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
@@ -310,13 +288,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
@@ -327,12 +305,6 @@ ALTER TABLE `users`
 --
 -- Restricciones para tablas volcadas
 --
-
---
--- Filtros para la tabla `adjuntos`
---
-ALTER TABLE `adjuntos`
-  ADD CONSTRAINT `adjuntos_ibfk_1` FOREIGN KEY (`fk_ticket`) REFERENCES `tickets` (`id`);
 
 --
 -- Filtros para la tabla `proyectos`

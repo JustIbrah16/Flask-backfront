@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from services.usuarios_queries import User_queries
 from services.roles_queries import RolesQueries
+from datetime import datetime
 
 usuarios = Blueprint('usuarios', __name__)
 
@@ -17,6 +18,7 @@ def login():
     if usuario:
         session['user_id'] = usuario.id  
         session['username'] = usuario.nombre
+        session['login_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         return jsonify({
             "message": f"Bienvenido, {usuario.nombre}!",
             "redirect": "/inicio"
@@ -41,3 +43,20 @@ def inicio():
     ]
     return jsonify({"message": "Bienvenido al Reddesk", "opciones": opciones}), 200
 
+@usuarios.route('/usuario/info', methods=['GET'])
+def obtener_usuario_info():
+    usuario_id = session.get('user_id')
+    usuario_nombre = session.get('username')
+    hora_ingreso = session.get('login_time')
+
+    if  not usuario_id or not usuario_nombre or not hora_ingreso:
+        return jsonify({"error": "No hay usuario autenticado"}), 401
+    
+    return jsonify({
+        "usuario": {
+            "id": usuario_id,
+            "nombre": usuario_nombre,
+            "hora_ingreso": hora_ingreso
+        }
+
+    }), 200
