@@ -57,5 +57,5 @@ def listar_proyectos():
         for proyecto in proyectos
     ]
     return jsonify(proyectos_json), 200
-
+## para probar en postman se debe filtrar por nombre del proyecto en params
     

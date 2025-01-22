@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 from services.usuarios_queries import User_queries
 from services.roles_queries import RolesQueries
 from datetime import datetime
+from flask import render_template
 
 usuarios = Blueprint('usuarios', __name__)
 
@@ -37,6 +38,8 @@ def inicio():
         return jsonify({"error": "Usuario no autenticado"}), 401
 
     opciones = [
+        {"nombre": "Usuario", "endpoint": "/usuario/info"},
+        {"nombre": "Cerrar sesión", "endpoint": "/logout"},
         {"nombre": "Crear Ticket", "endpoint": "/tickets/nuevo"},
         {"nombre": "Mis Proyectos", "endpoint": "/mis_proyectos/acceso"},
         {"nombre": "Base de Tickets", "endpoint": "/base_tickets"}
