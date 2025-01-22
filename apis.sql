@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 21-01-2025 a las 16:14:44
+-- Tiempo de generación: 22-01-2025 a las 22:43:27
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -135,18 +135,21 @@ CREATE TABLE `tickets` (
   `fk_usuario` int(2) NOT NULL,
   `fk_proyecto` int(11) NOT NULL,
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
-  `estado` enum('abierto','pendiente','atendido','devuelto','cerrado') NOT NULL DEFAULT 'abierto'
+  `estado` enum('abierto','pendiente','atendido','devuelto','cerrado') NOT NULL DEFAULT 'abierto',
+  `categoria` varchar(100) DEFAULT NULL,
+  `fecha_estimada` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`, `estado`) VALUES
-(10, 'Firma de documentos', 'Por favor firmar los documentos urgente', 1, 1, '2025-01-15 22:29:04', 'abierto'),
-(11, 'Quuo Firma de documentps', 'Firmar documentos con fecha 12-03-2024', 1, 1, '2025-01-20 16:24:45', 'pendiente'),
-(12, 'Mordecai', NULL, 1, 1, '2025-01-20 20:23:20', 'pendiente'),
-(13, 'Mordecai', NULL, 1, 1, '2025-01-20 20:25:50', 'pendiente');
+INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`, `estado`, `categoria`, `fecha_estimada`) VALUES
+(10, 'Firma de documentos', 'Por favor firmar los documentos urgente', 1, 1, '2025-01-15 22:29:04', 'pendiente', NULL, NULL),
+(11, 'Quuo Firma de documentps', 'Firmar documentos con fecha 12-03-2024', 1, 1, '2025-01-20 16:24:45', 'pendiente', NULL, NULL),
+(15, 'Mordecai', 'este es un ticket para mordecai', 1, 2, '2025-01-21 20:41:00', 'pendiente', 'Cliente', '2025-02-16 00:00:00'),
+(16, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-22 19:07:23', 'pendiente', 'Cliente', '2025-02-16 00:00:00'),
+(17, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-23 01:40:56', 'pendiente', 'Cliente', '2025-02-16 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -167,7 +170,9 @@ CREATE TABLE `ticket_archivos` (
 
 INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archivo`) VALUES
 (6, 10, '77868.pdf', 'uploads/77868.pdf'),
-(7, 13, 'images.jfif', 'uploads/images.jfif');
+(9, 15, 'apis (2).sql', 'uploads/apis (2).sql'),
+(10, 16, 'apis (2).sql', 'uploads/apis (2).sql'),
+(11, 17, 'apis (2).sql', 'uploads/apis (2).sql');
 
 -- --------------------------------------------------------
 
@@ -286,13 +291,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
