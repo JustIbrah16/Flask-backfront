@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-01-2025 a las 22:43:27
+-- Tiempo de generación: 24-01-2025 a las 23:40:52
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `apis`
 --
+CREATE DATABASE IF NOT EXISTS `apis` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `apis`;
 
 -- --------------------------------------------------------
 
@@ -137,19 +139,23 @@ CREATE TABLE `tickets` (
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
   `estado` enum('abierto','pendiente','atendido','devuelto','cerrado') NOT NULL DEFAULT 'abierto',
   `categoria` varchar(100) DEFAULT NULL,
-  `fecha_estimada` datetime DEFAULT NULL
+  `fecha_estimada` datetime DEFAULT NULL,
+  `causal_cierre` varchar(255) DEFAULT NULL,
+  `comentario_cierre` text DEFAULT NULL,
+  `fk_usuario_cierre` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`, `estado`, `categoria`, `fecha_estimada`) VALUES
-(10, 'Firma de documentos', 'Por favor firmar los documentos urgente', 1, 1, '2025-01-15 22:29:04', 'pendiente', NULL, NULL),
-(11, 'Quuo Firma de documentps', 'Firmar documentos con fecha 12-03-2024', 1, 1, '2025-01-20 16:24:45', 'pendiente', NULL, NULL),
-(15, 'Mordecai', 'este es un ticket para mordecai', 1, 2, '2025-01-21 20:41:00', 'pendiente', 'Cliente', '2025-02-16 00:00:00'),
-(16, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-22 19:07:23', 'pendiente', 'Cliente', '2025-02-16 00:00:00'),
-(17, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-23 01:40:56', 'pendiente', 'Cliente', '2025-02-16 00:00:00');
+INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`, `estado`, `categoria`, `fecha_estimada`, `causal_cierre`, `comentario_cierre`, `fk_usuario_cierre`) VALUES
+(10, 'Firma de documentos', 'Por favor firmar los documentos urgente', 1, 1, '2025-01-15 22:29:04', 'pendiente', NULL, NULL, NULL, NULL, NULL),
+(11, 'Quuo Firma de documentps', 'Firmar documentos con fecha 12-03-2024', 1, 1, '2025-01-20 16:24:45', 'cerrado', NULL, NULL, 'Resuelto por cliente', 'El problema fue solucionado externamente', NULL),
+(15, 'Mordecai', 'este es un ticket para mordecai', 1, 2, '2025-01-21 20:41:00', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Resuelto por cliente', 'El problema fue solucionado externamente', 1),
+(16, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-22 19:07:23', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se firmó el documento solicitado', NULL),
+(17, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-23 01:40:56', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se arregló el bug solicitado', NULL),
+(18, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-01-25 02:19:40', 'cerrado', 'Bug', '2025-01-30 00:00:00', 'Bug solucionado', 'Se arregló el bug solicitado', 1);
 
 -- --------------------------------------------------------
 
@@ -172,7 +178,8 @@ INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archiv
 (6, 10, '77868.pdf', 'uploads/77868.pdf'),
 (9, 15, 'apis (2).sql', 'uploads/apis (2).sql'),
 (10, 16, 'apis (2).sql', 'uploads/apis (2).sql'),
-(11, 17, 'apis (2).sql', 'uploads/apis (2).sql');
+(11, 17, 'apis (2).sql', 'uploads/apis (2).sql'),
+(12, 18, '77912_3.pdf', 'uploads/77912_3.pdf');
 
 -- --------------------------------------------------------
 
@@ -237,7 +244,8 @@ ALTER TABLE `rol_permisos`
 ALTER TABLE `tickets`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_usuario` (`fk_usuario`),
-  ADD KEY `fk_proyecto` (`fk_proyecto`);
+  ADD KEY `fk_proyecto` (`fk_proyecto`),
+  ADD KEY `tickets_fk_usuario_cierre` (`fk_usuario_cierre`);
 
 --
 -- Indices de la tabla `ticket_archivos`
@@ -291,13 +299,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
@@ -326,6 +334,7 @@ ALTER TABLE `rol_permisos`
 -- Filtros para la tabla `tickets`
 --
 ALTER TABLE `tickets`
+  ADD CONSTRAINT `tickets_fk_usuario_cierre` FOREIGN KEY (`fk_usuario_cierre`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`fk_proyecto`) REFERENCES `proyectos` (`id`) ON DELETE CASCADE;
 
