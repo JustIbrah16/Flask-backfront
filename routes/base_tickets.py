@@ -38,24 +38,30 @@ def acceso_base_tickets():
         }), 404
 
     tickets_json = [
-        {
-            "id": ticket.id,
-            "titulo": ticket.titulo,
-            "comentario": ticket.comentario,
-            "estado": ticket.estado,
-            "proyecto": ticket.proyecto.nombre,
-            "usuario": ticket.usuario.nombre,
-            "archivos": [
-                {
-                    "id": adjunto.id,
-                    "nombre_archivo": adjunto.nombre_archivo,
-                    "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)  
-                }
-                for adjunto in ticket.archivos
-            ]
-        }
-        for ticket in tickets
-    ]
+    {
+        "id": ticket.id,
+        "titulo": ticket.titulo,
+        "comentario": ticket.comentario,
+        "categoria": ticket.categoria,
+        "fecha_creacion": ticket.fecha_creacion.strftime('%Y-%m-%d') if ticket.fecha_creacion else None,
+        "fecha_estimada": ticket.fecha_estimada.strftime('%Y-%m-%d') if ticket.fecha_estimada else None,
+        "causal_cierre": ticket.causal_cierre,  
+        "comentario_cierre": ticket.comentario_cierre,  
+        "estado": ticket.estado,
+        "proyecto": ticket.proyecto.nombre,
+        "usuario": ticket.usuario.nombre,
+        "archivos": [
+            {
+                "id": adjunto.id,
+                "nombre_archivo": adjunto.nombre_archivo,
+                "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)
+            }
+            for adjunto in ticket.archivos
+        ]
+    }
+    for ticket in tickets
+]
+
     
     return jsonify({
         "message": "Bienvenido a Base de Tickets",
@@ -133,15 +139,6 @@ def crear_ticket():
         "ticket_id": ticket.id
     }), 201
 
-# para probar en postman:
-# Selecciona la opción form-data en body.
-# Incluye los siguientes campos:
-# titulo (Texto): El título del ticket.
-# comentario (Texto, opcional): El comentario del ticket.
-# nombre_proyecto (Texto): El nombre del proyecto(ej: Bancoomeva).
-# archivos (Archivo, opcional): hasta 10 mb
-# fecha_estimada (texto, opcional): La fecha estimada de resolución del ticket. Formato: Año-Mes-Día.
-
 @base_tickets.route('/base_tickets/filtrar', methods=['GET'])
 def filtrar_tickets():
     usuario_id = session.get('user_id')
@@ -158,6 +155,8 @@ def filtrar_tickets():
     categoria = request.args.get('categoria')
     fecha_creacion = request.args.get('fecha_creacion')
     fecha_estimada = request.args.get('fecha_estimada')
+    causal_cierre = request.args.get('causal_cierre')
+    comentario_cierre = request.args.get('comentario_cierre')
 
     query = Tickets.query
 
@@ -171,6 +170,10 @@ def filtrar_tickets():
         query = query.filter(Tickets.estado.ilike(f"%{estado}%"))
     if categoria:
         query = query.filter(Tickets.categoria.ilike(f"%{categoria}%"))
+    if causal_cierre:
+        query = query.filter(Tickets.causal_cierre.ilike(f"%{causal_cierre}%"))
+    if comentario_cierre:
+        query = query.filter(Tickets.comentario_cierre.ilike(f"%{comentario_cierre}%"))
     if fecha_creacion:
         try:
             fecha_inicio = datetime.strptime(fecha_creacion, '%Y-%m-%d')
@@ -198,6 +201,8 @@ def filtrar_tickets():
             "categoria": ticket.categoria,
             "fecha_creacion": ticket.fecha_creacion.strftime('%Y-%m-%d') if ticket.fecha_creacion else None,
             "fecha_estimada": ticket.fecha_estimada.strftime('%Y-%m-%d') if ticket.fecha_estimada else None,
+            "causal_cierre": ticket.causal_cierre,
+            "comentario_cierre": ticket.comentario_cierre,
             "estado": ticket.estado,
             "proyecto": ticket.proyecto.nombre,
             "usuario": ticket.usuario.nombre,
@@ -252,6 +257,19 @@ def actualizar_estado_ticket(ticket_id):
                 "estado_actual": ticket.estado
             })
 
+        if nuevo_estado == 'cerrado':
+            causal_cierre = data.get('causal_cierre')
+            comentario_cierre = data.get('comentario_cierre')
+
+            if not causal_cierre:
+                return jsonify({"error": "El campo 'causal_cierre' es requerido para cerrar el ticket"}), 400
+            if not comentario_cierre:
+                return jsonify({"error": "El campo 'comentario_cierre' es requerido para cerrar el ticket"}), 400
+
+            ticket.causal_cierre = causal_cierre
+            ticket.comentario_cierre = comentario_cierre
+            ticket.fk_usuario_cierre = usuario_id
+
         ticket.estado = nuevo_estado
         db.session.commit()
 
@@ -265,4 +283,53 @@ def actualizar_estado_ticket(ticket_id):
         return jsonify({"error": f"Error al actualizar el estado del ticket: {str(e)}"}), 500
 
 
+
+@base_tickets.route('/tickets/<int:ticket_id>/cerrar', methods=['PUT'])
+def cerrar_ticket(ticket_id):
+    usuario_id = session.get('user_id')
+    if not usuario_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401
+
+    if not RolesQueries.tiene_permiso(usuario_id, 'Actualizar Estado Ticket'):
+        return jsonify({"error": "No tiene permisos para cerrar tickets"}), 403
+
+    data = request.json
+    causal_cierre = data.get('causal_cierre')
+    comentario_cierre = data.get('comentario_cierre')
+
+    if not causal_cierre:
+        return jsonify({"error": "El campo 'causal_cierre' es requerido"}), 400
+
+    if not comentario_cierre:
+        return jsonify({"error": "El campo 'comentario_cierre' es requerido"}), 400
+
+    try:
+        ticket = Tickets.query.get(ticket_id)
+        if not ticket:
+            return jsonify({"error": "Ticket no encontrado"}), 404
+
+        if ticket.estado == 'cerrado':
+            return jsonify({
+                "message": "El ticket ya está cerrado",
+                "ticket_id": ticket.id
+            }), 400
+
+        ticket.estado = 'cerrado'
+        ticket.causal_cierre = causal_cierre
+        ticket.comentario_cierre = comentario_cierre
+        ticket.fk_usuario_cierre = usuario_id
+        
+        db.session.commit()
+
+        return jsonify({
+            "message": "El ticket ha sido cerrado exitosamente",
+            "ticket_id": ticket.id,
+            "nuevo_estado": ticket.estado,
+            "causal_cierre": ticket.causal_cierre,
+            "comentario_cierre": ticket.comentario_cierre,
+            "usuario_cierre": ticket.usuario_cierre.nombre if ticket.usuario_cierre else "Usuario no encontrado"
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al cerrar el ticket: {str(e)}"}), 500
 

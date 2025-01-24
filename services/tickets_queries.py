@@ -36,3 +36,14 @@ class TicketsQueries:
         ticket.estado = nuevo_estado
         db.session.commit()
         return ticket
+
+    @staticmethod
+    def cerrar_ticket(ticket_id, causal_cierre, comentarios_cierre):
+        ticket = Tickets.query.get(ticket_id)
+        if not ticket:
+            return None
+        ticket.estado = 'cerrado'
+        ticket.causal_cierre = causal_cierre
+        ticket.comentarios_cierre = comentarios_cierre
+        db.session.commit()
+        return ticket
