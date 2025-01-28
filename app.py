@@ -8,9 +8,11 @@ from models.Permisos import Permisos
 from models.Grupos import Grupos
 from models.Users import Usuarios
 from models.Tickets import Tickets, Adjuntos
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type", "Authorization"]}})
 
 app.secret_key = 'secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost:3306/apis'
