@@ -1,5 +1,6 @@
 from utils.db import db
 from models.Tickets import Tickets, Adjuntos
+from models.Comentarios_Tickets import ComentariosTickets
 
 class TicketsQueries:
 
@@ -47,3 +48,14 @@ class TicketsQueries:
         ticket.comentarios_cierre = comentarios_cierre
         db.session.commit()
         return ticket
+    
+    @staticmethod
+    def agregar_comentario(ticket_id, comentario, usuario_id):
+        nuevo_comentario = ComentariosTickets(
+            comentario=comentario,
+            fk_ticket=ticket_id,
+            fk_usuario=usuario_id
+        )
+        db.session.add(nuevo_comentario)
+        db.session.commit()
+        return nuevo_comentario
