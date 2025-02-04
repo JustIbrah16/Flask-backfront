@@ -50,6 +50,15 @@ def acceso_base_tickets():
         "estado": ticket.estado,
         "proyecto": ticket.proyecto.nombre,
         "usuario": ticket.usuario.nombre,
+        "comentarios": [
+            {
+                "id": comentario.id,
+                "comentario": comentario.comentario,
+                "fecha_creacion": comentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
+                "usuario": comentario.usuario.nombre
+            }
+            for comentario in ticket.comentarios
+        ],
         "archivos": [
             {
                 "id": adjunto.id,
@@ -139,6 +148,8 @@ def crear_ticket():
         "ticket_id": ticket.id
     }), 201
 
+
+
 @base_tickets.route('/base_tickets/filtrar', methods=['GET'])
 def filtrar_tickets():
     usuario_id = session.get('user_id')
@@ -206,6 +217,15 @@ def filtrar_tickets():
             "estado": ticket.estado,
             "proyecto": ticket.proyecto.nombre,
             "usuario": ticket.usuario.nombre,
+            "comentarios": [
+            {
+                "id": comentario.id,
+                "comentario": comentario.comentario,
+                "fecha_creacion": comentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
+                "usuario": comentario.usuario.nombre
+            }
+            for comentario in ticket.comentarios
+        ],
             "archivos": [
                 {
                     "id": adjunto.id,
@@ -333,3 +353,39 @@ def cerrar_ticket(ticket_id):
         db.session.rollback()
         return jsonify({"error": f"Error al cerrar el ticket: {str(e)}"}), 500
 
+@base_tickets.route('/tickets/<int:ticket_id>/comentarios', methods=['POST'])
+def agregar_comentario(ticket_id):
+    usuario_id = session.get('user_id')
+    if not usuario_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401    
+    
+    data = request.json
+    comentario_texto = data.get('comentario')
+    
+    if not comentario_texto:
+        return jsonify({"error": "El campo 'comentario' es requerido"}), 400
+    
+    ticket = Tickets.query.get(ticket_id)
+    if not ticket:
+        return jsonify({"error": "Ticket no encontrado"}), 404
+    
+    nuevocomentario = TicketsQueries.agregar_comentario(    
+        comentario=comentario_texto,
+        ticket_id=ticket_id,
+        usuario_id=usuario_id
+    )
+
+    db.session.add(nuevocomentario)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Comentario agregado exitosamente",
+        "comentario": {
+            "id": nuevocomentario.id,
+            "comentario": nuevocomentario.comentario,
+            "fecha_creacion": nuevocomentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
+            "usuario": nuevocomentario.usuario.nombre
+        }
+    }), 201
+
+   
