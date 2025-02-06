@@ -32,6 +32,9 @@ def acceso_mis_proyectos():
         "opciones": [{"nombre": "Filtrar proyectos", "endpoint": "/mis_proyectos/listar"}]
     }), 200
 
+# ////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////
 
 
 @mis_proyectos.route('/mis_proyectos/listar', methods=['GET'])
@@ -58,6 +61,11 @@ def listar_proyectos():
     ]
     return jsonify(proyectos_json), 200
 ## para probar en postman se debe filtrar por nombre del proyecto en params
+
+# ////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////
+
     
 @mis_proyectos.route('/mis_proyectos/resumen_tickets', methods=['GET'])
 def resumen_tickets():
