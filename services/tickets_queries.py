@@ -5,6 +5,10 @@ from models.Comentarios_Tickets import ComentariosTickets
 class TicketsQueries:
 
     @staticmethod
+    def obtener_tickets():
+        return Tickets.query.all()   
+
+    @staticmethod
     def crear_ticket(titulo, comentario, fk_proyecto, usuario_id, archivos, categoria, fecha_estimada):
         ticket = Tickets(
             titulo=titulo,

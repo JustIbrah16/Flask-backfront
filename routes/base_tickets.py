@@ -24,9 +24,9 @@ def acceso_base_tickets():
     if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Base de Tickets'):
         return jsonify({"error": "Acceso denegado a Base de Tickets"}), 403
 
-    tickets = Tickets.query.all()
+    tickets = TicketsQueries.obtener_tickets()
 
-    if not tickets:
+    if not tickets: 
         return jsonify({
             "message": "No se encontraron tickets",
             "opciones": [
@@ -84,12 +84,16 @@ def acceso_base_tickets():
     }), 200
 
 
+
+
+
 @base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
 def servir_archivo(nombre_archivo):
     try:
         return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False)
     except FileNotFoundError:
         return jsonify({"error": "Archivo no encontrado"}), 404
+
 
 
 
@@ -147,6 +151,7 @@ def crear_ticket():
         "message": "Ticket creado exitosamente",
         "ticket_id": ticket.id
     }), 201
+
 
 
 
@@ -245,6 +250,8 @@ def filtrar_tickets():
 
 
 
+
+
 @base_tickets.route('/tickets/<int:ticket_id>/estado', methods=['PUT'])
 def actualizar_estado_ticket(ticket_id):
     usuario_id = session.get('user_id')
@@ -304,6 +311,7 @@ def actualizar_estado_ticket(ticket_id):
 
 
 
+
 @base_tickets.route('/tickets/<int:ticket_id>/cerrar', methods=['PUT'])
 def cerrar_ticket(ticket_id):
     usuario_id = session.get('user_id')
@@ -352,6 +360,9 @@ def cerrar_ticket(ticket_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al cerrar el ticket: {str(e)}"}), 500
+    
+
+
 
 @base_tickets.route('/tickets/<int:ticket_id>/comentarios', methods=['POST'])
 def agregar_comentario(ticket_id):
@@ -388,4 +399,4 @@ def agregar_comentario(ticket_id):
         }
     }), 201
 
-   
+
