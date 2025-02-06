@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-01-2025 a las 21:59:30
+-- Tiempo de generación: 06-02-2025 a las 14:49:18
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,8 +20,27 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `apis`
 --
-CREATE DATABASE IF NOT EXISTS `apis` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `apis`;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `comentarios_tickets`
+--
+
+CREATE TABLE `comentarios_tickets` (
+  `id` int(11) NOT NULL,
+  `comentario` text NOT NULL,
+  `fecha_creacion` datetime DEFAULT NULL,
+  `fk_ticket` int(11) NOT NULL,
+  `fk_usuario` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `comentarios_tickets`
+--
+
+INSERT INTO `comentarios_tickets` (`id`, `comentario`, `fecha_creacion`, `fk_ticket`, `fk_usuario`) VALUES
+(8, 'Me equivoqué de proyecto, por favor cerrar este ticket', '2025-02-04 21:58:05', 21, 1);
 
 -- --------------------------------------------------------
 
@@ -155,7 +174,10 @@ INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`
 (15, 'Mordecai', 'este es un ticket para mordecai', 1, 2, '2025-01-21 20:41:00', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Resuelto por cliente', 'El problema fue solucionado externamente', 1),
 (16, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-22 19:07:23', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se firmó el documento solicitado', NULL),
 (17, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-23 01:40:56', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se arregló el bug solicitado', NULL),
-(18, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-01-25 02:19:40', 'cerrado', 'Bug', '2025-01-30 00:00:00', 'Bug solucionado', 'Se arregló el bug solicitado', 1);
+(18, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-01-25 02:19:40', 'abierto', 'Bug', '2025-01-30 00:00:00', 'Bug solucionado', 'Se arregló el bug solicitado', 1),
+(19, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-02-01 03:32:02', 'pendiente', 'Bug', '2025-01-30 00:00:00', NULL, NULL, NULL),
+(20, 'Ticket Oficial Prueba', 'Este es un ticket de prueba que se usará para probar las apis', 1, 5, '2025-02-05 02:42:18', 'cerrado', 'Clientes', '2025-02-15 00:00:00', 'Petición del responsable', 'Se cerró el ticket por Petición', 1),
+(21, 'Cuento de los hermanos green', 'Necesito que saquen mas capitulos de los hermanosG', 1, 4, '2025-02-05 02:49:12', 'cerrado', 'Clientes', '2025-02-10 00:00:00', 'Petición del responsable', 'Se cerró el ticket por Petición', 1);
 
 -- --------------------------------------------------------
 
@@ -179,7 +201,9 @@ INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archiv
 (9, 15, 'apis (2).sql', 'uploads/apis (2).sql'),
 (10, 16, 'apis (2).sql', 'uploads/apis (2).sql'),
 (11, 17, 'apis (2).sql', 'uploads/apis (2).sql'),
-(12, 18, '77912_3.pdf', 'uploads/77912_3.pdf');
+(12, 18, '77912_3.pdf', 'uploads/77912_3.pdf'),
+(13, 20, 'reddesk.png', 'uploads/reddesk.png'),
+(14, 21, '77995.pdf', 'uploads/77995.pdf');
 
 -- --------------------------------------------------------
 
@@ -204,6 +228,14 @@ INSERT INTO `users` (`id`, `nombre`, `password`, `fk_rol`) VALUES
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `comentarios_tickets`
+--
+ALTER TABLE `comentarios_tickets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_ticket` (`fk_ticket`),
+  ADD KEY `fk_usuario` (`fk_usuario`);
 
 --
 -- Indices de la tabla `grupos`
@@ -266,6 +298,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `comentarios_tickets`
+--
+ALTER TABLE `comentarios_tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
@@ -299,13 +337,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
@@ -316,6 +354,13 @@ ALTER TABLE `users`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `comentarios_tickets`
+--
+ALTER TABLE `comentarios_tickets`
+  ADD CONSTRAINT `comentarios_tickets_ibfk_1` FOREIGN KEY (`fk_ticket`) REFERENCES `tickets` (`id`),
+  ADD CONSTRAINT `comentarios_tickets_ibfk_2` FOREIGN KEY (`fk_usuario`) REFERENCES `users` (`id`);
 
 --
 -- Filtros para la tabla `proyectos`
