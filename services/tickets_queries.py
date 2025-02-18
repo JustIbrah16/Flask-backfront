@@ -32,6 +32,7 @@ class TicketsQueries:
     
         db.session.commit()
         return ticket
+    
 
     @staticmethod
     def actualizar_estado(ticket_id, nuevo_estado):
