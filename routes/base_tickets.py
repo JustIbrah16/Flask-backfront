@@ -1,13 +1,14 @@
 from flask import Blueprint, session, jsonify, request, send_from_directory, url_for
-from services.roles_queries import RolesQueries
 from services.tickets_queries import TicketsQueries
-from services.proyecto_queries import ProyectosQueries
+from utils.respuesta_json import serializar_tickets
 from models.Tickets import Tickets
 from models.proyectos import Proyectos
 from models.Users import Usuarios
 from utils.db import db
 import os
 from datetime import datetime, timedelta
+from utils.decorador import requiere_permiso
+
 
 
 base_tickets = Blueprint('base_tickets', __name__)
@@ -16,17 +17,12 @@ UPLOAD_FOLDER = 'uploads/'
 os.makedirs(UPLOAD_FOLDER,exist_ok=True)
 
 @base_tickets.route('/base_tickets', methods=['GET'])
+@requiere_permiso('Acceso Base de Tickets')
 def acceso_base_tickets():
-    usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Base de Tickets'):
-        return jsonify({"error": "Acceso denegado a Base de Tickets"}), 403
 
     tickets = TicketsQueries.obtener_tickets()
 
-    if not tickets: 
+    if not tickets:
         return jsonify({
             "message": "No se encontraron tickets",
             "opciones": [
@@ -37,39 +33,7 @@ def acceso_base_tickets():
             ]
         }), 404
 
-    tickets_json = [
-    {
-        "id": ticket.id,
-        "titulo": ticket.titulo,
-        "comentario": ticket.comentario,
-        "categoria": ticket.categoria,
-        "fecha_creacion": ticket.fecha_creacion.strftime('%Y-%m-%d') if ticket.fecha_creacion else None,
-        "fecha_estimada": ticket.fecha_estimada.strftime('%Y-%m-%d') if ticket.fecha_estimada else None,
-        "causal_cierre": ticket.causal_cierre,  
-        "comentario_cierre": ticket.comentario_cierre,  
-        "estado": ticket.estado,
-        "proyecto": ticket.proyecto.nombre,
-        "usuario": ticket.usuario.nombre,
-        "comentarios": [
-            {
-                "id": comentario.id,
-                "comentario": comentario.comentario,
-                "fecha_creacion": comentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
-                "usuario": comentario.usuario.nombre
-            }
-            for comentario in ticket.comentarios
-        ],
-        "archivos": [
-            {
-                "id": adjunto.id,
-                "nombre_archivo": adjunto.nombre_archivo,
-                "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)
-            }
-            for adjunto in ticket.archivos
-        ]
-    }
-    for ticket in tickets
-]
+    tickets_json = serializar_tickets(tickets)
 
     
     return jsonify({
@@ -84,9 +48,6 @@ def acceso_base_tickets():
     }), 200
 
 
-
-
-
 @base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
 def servir_archivo(nombre_archivo):
     try:
@@ -95,16 +56,9 @@ def servir_archivo(nombre_archivo):
         return jsonify({"error": "Archivo no encontrado"}), 404
 
 
-
-
 @base_tickets.route('/tickets/nuevo', methods=['POST'])
+@requiere_permiso('Crear Tickets')
 def crear_ticket():
-    usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Crear Tickets'):
-        return jsonify({"error": "No tiene permisos para crear tickets"}), 403
 
     data = request.form
     titulo = data.get('titulo')
@@ -127,10 +81,11 @@ def crear_ticket():
 
     archivos_adjuntos = []
     archivos = request.files.getlist('archivos')
-    total_size = sum(archivo.content_length for archivo in archivos)
-
-    if total_size > 10 * 1024 * 1024:  
+    total_size = sum(len(archivo.read()) for archivo in archivos)
+    
+    if total_size > 10 * 1024 * 1024:
         return jsonify({"error": "El tamaño máximo total es de 10MB"}), 400
+
 
     for archivo in archivos:
         archivo_ruta = os.path.join(UPLOAD_FOLDER, archivo.filename)
@@ -141,7 +96,7 @@ def crear_ticket():
         titulo=titulo,
         comentario=comentario,
         fk_proyecto=proyecto.id,  
-        usuario_id=usuario_id,
+        usuario_id=session.get('user_id'),
         archivos=archivos_adjuntos,
         categoria=categoria,
         fecha_estimada=fecha_estimada
@@ -156,247 +111,104 @@ def crear_ticket():
 
 
 @base_tickets.route('/base_tickets/filtrar', methods=['GET'])
+@requiere_permiso('Acceso Base de Tickets')
 def filtrar_tickets():
-    usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
+    filtros = {
+        "titulo" : request.args.get('titulo'),
+        "nombre_proyecto" : request.args.get('nombre_proyecto'),
+        "nombre_usuario" : request.args.get('nombre_usuario'),
+        "estado" : request.args.get('estado'),
+        "categoria" : request.args.get('categoria'),
+        "fecha_creacion" : request.args.get('fecha_creacion'),
+        "fecha_estimada" : request.args.get('fecha_estimada'),
+        "causal_cierre" : request.args.get('causal_cierre'),
+        "comentario_cierre" : request.args.get('comentario_cierre')
+    }
 
-    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Base de Tickets'):
-        return jsonify({"error": "Acceso denegado a Base de Tickets"}), 403
+    tickets = TicketsQueries.filtrar_tickets(**filtros)
 
-    titulo = request.args.get('titulo')
-    nombre_proyecto = request.args.get('nombre_proyecto')
-    nombre_usuario = request.args.get('nombre_usuario')
-    estado = request.args.get('estado')
-    categoria = request.args.get('categoria')
-    fecha_creacion = request.args.get('fecha_creacion')
-    fecha_estimada = request.args.get('fecha_estimada')
-    causal_cierre = request.args.get('causal_cierre')
-    comentario_cierre = request.args.get('comentario_cierre')
-
-    query = Tickets.query
-
-    if titulo:
-        query = query.filter(Tickets.titulo.ilike(f"%{titulo}%"))
-    if nombre_proyecto:
-        query = query.join(Proyectos).filter(Proyectos.nombre.ilike(f"%{nombre_proyecto}%"))
-    if nombre_usuario:
-        query = query.join(Usuarios).filter(Usuarios.nombre.ilike(f"%{nombre_usuario}%"))
-    if estado:
-        query = query.filter(Tickets.estado.ilike(f"%{estado}%"))
-    if categoria:
-        query = query.filter(Tickets.categoria.ilike(f"%{categoria}%"))
-    if causal_cierre:
-        query = query.filter(Tickets.causal_cierre.ilike(f"%{causal_cierre}%"))
-    if comentario_cierre:
-        query = query.filter(Tickets.comentario_cierre.ilike(f"%{comentario_cierre}%"))
-    if fecha_creacion:
-        try:
-            fecha_inicio = datetime.strptime(fecha_creacion, '%Y-%m-%d')
-            fecha_fin = fecha_inicio + timedelta(days=1)
-            query = query.filter(Tickets.fecha_creacion >= fecha_inicio, Tickets.fecha_creacion < fecha_fin)
-        except ValueError:
-            return jsonify({"error": "Formato de fecha de creación inválido. Use Año-Mes-Día"}), 400
-    if fecha_estimada:
-        try:
-            fecha_estimada = datetime.strptime(fecha_estimada, '%Y-%m-%d')
-            query = query.filter(Tickets.fecha_estimada == fecha_estimada)
-        except ValueError:
-            return jsonify({"error": "Formato de fecha estimada inválido. Use Año-Mes-Día"}), 400
-
-    tickets = query.all()
+    if isinstance(tickets, tuple):
+        return jsonify({"error": tickets[0]}), tickets[1]
 
     if not tickets:
         return jsonify({"message": "No se encontraron tickets"}), 404
 
-    tickets_json = [
-        {
-            "id": ticket.id,
-            "titulo": ticket.titulo,
-            "comentario": ticket.comentario,
-            "categoria": ticket.categoria,
-            "fecha_creacion": ticket.fecha_creacion.strftime('%Y-%m-%d') if ticket.fecha_creacion else None,
-            "fecha_estimada": ticket.fecha_estimada.strftime('%Y-%m-%d') if ticket.fecha_estimada else None,
-            "causal_cierre": ticket.causal_cierre,
-            "comentario_cierre": ticket.comentario_cierre,
-            "estado": ticket.estado,
-            "proyecto": ticket.proyecto.nombre,
-            "usuario": ticket.usuario.nombre,
-            "comentarios": [
-            {
-                "id": comentario.id,
-                "comentario": comentario.comentario,
-                "fecha_creacion": comentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
-                "usuario": comentario.usuario.nombre
-            }
-            for comentario in ticket.comentarios
-        ],
-            "archivos": [
-                {
-                    "id": adjunto.id,
-                    "nombre_archivo": adjunto.nombre_archivo,
-                    "url": url_for('base_tickets.servir_archivo', nombre_archivo=adjunto.nombre_archivo, _external=True)
-                }
-                for adjunto in ticket.archivos
-            ]
-        }
-        for ticket in tickets
-    ]
-
     return jsonify({
         "message": "Filtrado exitoso",
-        "tickets": tickets_json
+        "tickets": serializar_tickets(tickets)
     }), 200
 
 
 
-
-
 @base_tickets.route('/tickets/<int:ticket_id>/estado', methods=['PUT'])
+@requiere_permiso('Actualizar Estado Ticket')
 def actualizar_estado_ticket(ticket_id):
-    usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 403
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Actualizar Estado Ticket'):
-        return jsonify({"error": "No tiene permisos para actualizar el estado del ticket"}), 403
-
     data = request.json
-    nuevo_estado = data.get('estado')
+    nuevo_estado = data.get('estado', '').lower().strip()
+    causal_cierre = data.get('causal_cierre')
+    comentario_cierre = data.get('comentario_cierre')
+    usuario_id = session.get('user_id')
 
-    if not nuevo_estado:
-        return jsonify({"error": "El campo 'estado' es requerido"}), 400
-
-    nuevo_estado = nuevo_estado.lower().strip()
     estados_validos = ['abierto', 'pendiente', 'atendido', 'devuelto', 'cerrado']
     if nuevo_estado not in estados_validos:
-        return jsonify({"error": f"Estado inválido. Opciones permitidas: {', '.join(estados_validos)}"}), 400
+        return jsonify({"error": f"Estado inválido. Opciones: {', '.join(estados_validos)}"}), 400
 
-    try:
-        ticket = Tickets.query.get(ticket_id)
-        if not ticket:
-            return jsonify({"error": "Ticket no encontrado"}), 404
+    ticket, mensaje, codigo = TicketsQueries.actualizar_estado(ticket_id, nuevo_estado, causal_cierre, comentario_cierre, usuario_id)
+    
+    if not ticket:
+        return jsonify({"error": mensaje}), codigo
 
-        if ticket.estado == nuevo_estado:
-            return jsonify({
-                "message": "El estado del ticket ya es el especificado",
-                "ticket_id": ticket.id,
-                "estado_actual": ticket.estado
-            })
+    return jsonify({"message": mensaje, "ticket_id": ticket.id, "nuevo_estado": ticket.estado}), codigo
 
-        if nuevo_estado == 'cerrado':
-            causal_cierre = data.get('causal_cierre')
-            comentario_cierre = data.get('comentario_cierre')
-
-            if not causal_cierre:
-                return jsonify({"error": "El campo 'causal_cierre' es requerido para cerrar el ticket"}), 400
-            if not comentario_cierre:
-                return jsonify({"error": "El campo 'comentario_cierre' es requerido para cerrar el ticket"}), 400
-
-            ticket.causal_cierre = causal_cierre
-            ticket.comentario_cierre = comentario_cierre
-            ticket.fk_usuario_cierre = usuario_id
-
-        ticket.estado = nuevo_estado
-        db.session.commit()
-
-        return jsonify({
-            "message": "Estado del ticket actualizado exitosamente",
-            "ticket_id": ticket.id,
-            "nuevo_estado": ticket.estado
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Error al actualizar el estado del ticket: {str(e)}"}), 500
 
 
 
 
 @base_tickets.route('/tickets/<int:ticket_id>/cerrar', methods=['PUT'])
+@requiere_permiso('Actualizar Estado Ticket')
 def cerrar_ticket(ticket_id):
-    usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Actualizar Estado Ticket'):
-        return jsonify({"error": "No tiene permisos para cerrar tickets"}), 403
-
     data = request.json
-    causal_cierre = data.get('causal_cierre')
-    comentario_cierre = data.get('comentario_cierre')
+    usuario_id = session.get('user_id')
 
-    if not causal_cierre:
-        return jsonify({"error": "El campo 'causal_cierre' es requerido"}), 400
+    ticket, mensaje, codigo = TicketsQueries.actualizar_estado(
+        ticket_id, 'cerrado', data.get('causal_cierre'), data.get('comentario_cierre'), usuario_id
+    )
 
-    if not comentario_cierre:
-        return jsonify({"error": "El campo 'comentario_cierre' es requerido"}), 400
+    if not ticket:
+        return jsonify({"error": mensaje}), codigo
 
-    try:
-        ticket = Tickets.query.get(ticket_id)
-        if not ticket:
-            return jsonify({"error": "Ticket no encontrado"}), 404
-
-        if ticket.estado == 'cerrado':
-            return jsonify({
-                "message": "El ticket ya está cerrado",
-                "ticket_id": ticket.id
-            }), 400
-
-        ticket.estado = 'cerrado'
-        ticket.causal_cierre = causal_cierre
-        ticket.comentario_cierre = comentario_cierre
-        ticket.fk_usuario_cierre = usuario_id
-        
-        db.session.commit()
-
-        return jsonify({
-            "message": "El ticket ha sido cerrado exitosamente",
-            "ticket_id": ticket.id,
-            "nuevo_estado": ticket.estado,
-            "causal_cierre": ticket.causal_cierre,
-            "comentario_cierre": ticket.comentario_cierre,
-            "usuario_cierre": ticket.usuario_cierre.nombre if ticket.usuario_cierre else "Usuario no encontrado"
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Error al cerrar el ticket: {str(e)}"}), 500
+    return jsonify({
+        "message": mensaje,
+        "ticket_id": ticket.id,
+        "nuevo_estado": ticket.estado,
+        "causal_cierre": ticket.causal_cierre,
+        "comentario_cierre": ticket.comentario_cierre,
+        "usuario_cierre": ticket.usuario_cierre.nombre if ticket.usuario_cierre else "Usuario no encontrado"
+    }), codigo
     
 
-
-
 @base_tickets.route('/tickets/<int:ticket_id>/comentarios', methods=['POST'])
+@requiere_permiso('Comentar Ticket')
 def agregar_comentario(ticket_id):
     usuario_id = session.get('user_id')
     if not usuario_id:
         return jsonify({"error": "Usuario no autenticado"}), 401    
-    
-    data = request.json
-    comentario_texto = data.get('comentario')
-    
+
+    comentario_texto = request.json.get('comentario')
     if not comentario_texto:
         return jsonify({"error": "El campo 'comentario' es requerido"}), 400
-    
-    ticket = Tickets.query.get(ticket_id)
-    if not ticket:
-        return jsonify({"error": "Ticket no encontrado"}), 404
-    
-    nuevocomentario = TicketsQueries.agregar_comentario(    
-        comentario=comentario_texto,
-        ticket_id=ticket_id,
-        usuario_id=usuario_id
-    )
 
-    db.session.add(nuevocomentario)
-    db.session.commit()
+    comentario = TicketsQueries.agregar_comentario(ticket_id, comentario_texto, usuario_id)
 
     return jsonify({
         "message": "Comentario agregado exitosamente",
         "comentario": {
-            "id": nuevocomentario.id,
-            "comentario": nuevocomentario.comentario,
-            "fecha_creacion": nuevocomentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
-            "usuario": nuevocomentario.usuario.nombre
+            "id": comentario.id,
+            "comentario": comentario.comentario,
+            "fecha_creacion": comentario.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
+            "usuario": comentario.usuario.nombre
         }
     }), 201
+
 
 

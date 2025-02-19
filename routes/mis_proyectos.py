@@ -1,17 +1,13 @@
 from flask import Blueprint, session, jsonify, request
-from services.roles_queries import RolesQueries
 from services.proyecto_queries import ProyectosQueries
+from utils.decorador import requiere_permiso
 
 mis_proyectos = Blueprint('mis_proyectos', __name__)
 
 @mis_proyectos.route('/mis_proyectos/acceso', methods=['GET'])
+@requiere_permiso('Acceso Mis Proyectos')
 def acceso_mis_proyectos():
     usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Mis Proyectos'):
-        return jsonify({"error": "Acceso denegado a Mis Proyectos"}), 403
 
     proyectos = ProyectosQueries.obtener_proyectos(usuario_id)
 
@@ -32,19 +28,11 @@ def acceso_mis_proyectos():
         "opciones": [{"nombre": "Filtrar proyectos", "endpoint": "/mis_proyectos/listar"}]
     }), 200
 
-# ////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////
-
 
 @mis_proyectos.route('/mis_proyectos/listar', methods=['GET'])
+@requiere_permiso('Acceso Mis Proyectos')
 def listar_proyectos():
     usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Mis Proyectos'):
-        return jsonify({"error": "Acceso denegado a Mis Proyectos"}), 403
 
     nombre = request.args.get('nombre')
     proyectos = ProyectosQueries.obtener_proyectos(usuario_id=usuario_id, nombre=nombre)
@@ -60,21 +48,12 @@ def listar_proyectos():
         for proyecto in proyectos
     ]
     return jsonify(proyectos_json), 200
-## para probar en postman se debe filtrar por nombre del proyecto en params
 
-# ////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////
 
-    
 @mis_proyectos.route('/mis_proyectos/resumen_tickets', methods=['GET'])
+@requiere_permiso('Acceso Mis Proyectos')
 def resumen_tickets():
     usuario_id = session.get('user_id')
-    if not usuario_id:
-        return jsonify({"error": "Usuario no autenticado"}), 401
-
-    if not RolesQueries.tiene_permiso(usuario_id, 'Acceso Mis Proyectos'):
-        return jsonify({"error": "Acceso denegado a Mis Proyectos"}), 403
 
     try:
         resumen = ProyectosQueries.obtener_resumen_tickets(usuario_id)
@@ -95,4 +74,3 @@ def resumen_tickets():
         return jsonify({"resumen": resumen_json}), 200
     except Exception as e:
         return jsonify({"error": f"Error al obtener el resumen de tickets: {str(e)}"}), 500
-    
