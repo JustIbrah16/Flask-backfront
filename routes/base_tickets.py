@@ -1,15 +1,11 @@
-from flask import Blueprint, session, jsonify, request, send_from_directory, url_for
-from services.tickets_queries import TicketsQueries
-from utils.respuesta_json import serializar_tickets
-from models.Tickets import Tickets
-from models.proyectos import Proyectos
-from models.Users import Usuarios
-from utils.db import db
 import os
-from datetime import datetime, timedelta
+import mimetypes
+from datetime import datetime
+from models.proyectos import Proyectos
 from utils.decorador import requiere_permiso
-
-
+from utils.respuesta_json import serializar_tickets
+from services.tickets_queries import TicketsQueries
+from flask import Blueprint, session, jsonify, request, send_from_directory
 
 base_tickets = Blueprint('base_tickets', __name__)
 
@@ -48,13 +44,6 @@ def acceso_base_tickets():
     }), 200
 
 
-@base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
-def servir_archivo(nombre_archivo):
-    try:
-        return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False)
-    except FileNotFoundError:
-        return jsonify({"error": "Archivo no encontrado"}), 404
-
 
 @base_tickets.route('/tickets/nuevo', methods=['POST'])
 @requiere_permiso('Crear Tickets')
@@ -81,16 +70,21 @@ def crear_ticket():
 
     archivos_adjuntos = []
     archivos = request.files.getlist('archivos')
-    total_size = sum(len(archivo.read()) for archivo in archivos)
     
-    if total_size > 10 * 1024 * 1024:
-        return jsonify({"error": "El tamaño máximo total es de 10MB"}), 400
-
-
+    total_zise = 0
     for archivo in archivos:
-        archivo_ruta = os.path.join(UPLOAD_FOLDER, archivo.filename)
-        archivo.save(archivo_ruta)
-        archivos_adjuntos.append({"nombre_archivo": archivo.filename, "ruta_archivo": archivo_ruta})
+        archivo.seek(0, os.SEEK_END)
+        total_zise += archivo.tell()
+        archivo.seek(0)
+
+    if total_zise > 10 * 1024 * 1024:
+        return jsonify({"error": "El tamaño total de los archivos adjuntos no puede superar los 10MB"}), 400
+    
+    for archvo in archivos:
+        archivo_ruta = os.path.join(UPLOAD_FOLDER, archvo.filename)
+        archvo.seek(0)
+        archvo.save(archivo_ruta)
+        archivos_adjuntos.append({"nombre_archivo": archvo.filename, "ruta_archivo": archivo_ruta})
 
     ticket = TicketsQueries.crear_ticket(
         titulo=titulo,
@@ -106,6 +100,20 @@ def crear_ticket():
         "message": "Ticket creado exitosamente",
         "ticket_id": ticket.id
     }), 201
+
+
+
+@base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
+def servir_archivo(nombre_archivo):
+    archivo_ruta = os.path.join(UPLOAD_FOLDER, nombre_archivo)
+    if not os.path.exists(archivo_ruta):
+        return jsonify({"error": "Archivo no encontrado"}), 404
+    
+    mimetype, _ = mimetypes.guess_type(archivo_ruta)
+    if not mimetype:
+        mimetype = 'application/octet-stream'
+    
+    return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False, mimetype=mimetype)
 
 
 
@@ -159,9 +167,6 @@ def actualizar_estado_ticket(ticket_id):
         return jsonify({"error": mensaje}), codigo
 
     return jsonify({"message": mensaje, "ticket_id": ticket.id, "nuevo_estado": ticket.estado}), codigo
-
-
-
 
 
 @base_tickets.route('/tickets/<int:ticket_id>/cerrar', methods=['PUT'])
