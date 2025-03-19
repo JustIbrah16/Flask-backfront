@@ -49,7 +49,7 @@ class TicketsQueries:
 
         if nuevo_estado == 'cerrado':
             if not causal_cierre or not comentario_cierre:
-                return None, "Faltan datos para cerrar el ticket", 400
+                return None, "Faltan datos (comentario y causal de cierre) para cerrar el ticket", 400
 
             ticket.causal_cierre = causal_cierre
             ticket.comentario_cierre = comentario_cierre

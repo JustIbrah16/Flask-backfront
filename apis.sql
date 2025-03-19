@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-02-2025 a las 14:49:18
+-- Tiempo de generación: 19-03-2025 a las 21:47:25
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -40,7 +40,9 @@ CREATE TABLE `comentarios_tickets` (
 --
 
 INSERT INTO `comentarios_tickets` (`id`, `comentario`, `fecha_creacion`, `fk_ticket`, `fk_usuario`) VALUES
-(8, 'Me equivoqué de proyecto, por favor cerrar este ticket', '2025-02-04 21:58:05', 21, 1);
+(8, 'Me equivoqué de proyecto, por favor cerrar este ticket', '2025-02-04 21:58:05', 21, 1),
+(9, 'Este es un comentario de prueba', '2025-02-26 21:19:39', 38, 1),
+(10, 'Este es un comentario de prueba 2', '2025-02-26 21:23:00', 38, 1);
 
 -- --------------------------------------------------------
 
@@ -169,15 +171,7 @@ CREATE TABLE `tickets` (
 --
 
 INSERT INTO `tickets` (`id`, `titulo`, `comentario`, `fk_usuario`, `fk_proyecto`, `fecha_creacion`, `estado`, `categoria`, `fecha_estimada`, `causal_cierre`, `comentario_cierre`, `fk_usuario_cierre`) VALUES
-(10, 'Firma de documentos', 'Por favor firmar los documentos urgente', 1, 1, '2025-01-15 22:29:04', 'pendiente', NULL, NULL, NULL, NULL, NULL),
-(11, 'Quuo Firma de documentps', 'Firmar documentos con fecha 12-03-2024', 1, 1, '2025-01-20 16:24:45', 'cerrado', NULL, NULL, 'Resuelto por cliente', 'El problema fue solucionado externamente', NULL),
-(15, 'Mordecai', 'este es un ticket para mordecai', 1, 2, '2025-01-21 20:41:00', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Resuelto por cliente', 'El problema fue solucionado externamente', 1),
-(16, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-22 19:07:23', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se firmó el documento solicitado', NULL),
-(17, 'Bug', 'este es un ticket para mordecai', 1, 2, '2025-01-23 01:40:56', 'cerrado', 'Cliente', '2025-02-16 00:00:00', 'Ticket resuelto', 'Se arregló el bug solicitado', NULL),
-(18, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-01-25 02:19:40', 'abierto', 'Bug', '2025-01-30 00:00:00', 'Bug solucionado', 'Se arregló el bug solicitado', 1),
-(19, 'Solucionar bug en tickets', 'Por favor solucionar los bug al enviar un ticket', 1, 5, '2025-02-01 03:32:02', 'pendiente', 'Bug', '2025-01-30 00:00:00', NULL, NULL, NULL),
-(20, 'Ticket Oficial Prueba', 'Este es un ticket de prueba que se usará para probar las apis', 1, 5, '2025-02-05 02:42:18', 'cerrado', 'Clientes', '2025-02-15 00:00:00', 'Petición del responsable', 'Se cerró el ticket por Petición', 1),
-(21, 'Cuento de los hermanos green', 'Necesito que saquen mas capitulos de los hermanosG', 1, 4, '2025-02-05 02:49:12', 'cerrado', 'Clientes', '2025-02-10 00:00:00', 'Petición del responsable', 'Se cerró el ticket por Petición', 1);
+(38, 'Firma de tickets', 'Por favor firmar los documentos con cc 1231312 y fecha 123-123-123', 1, 1, '2025-02-27 01:35:49', 'cerrado', 'Cliente', '2025-03-01 00:00:00', 'Ticket terminado', 'Firmas realizadas', 1);
 
 -- --------------------------------------------------------
 
@@ -197,13 +191,8 @@ CREATE TABLE `ticket_archivos` (
 --
 
 INSERT INTO `ticket_archivos` (`id`, `fk_ticket`, `nombre_archivo`, `ruta_archivo`) VALUES
-(6, 10, '77868.pdf', 'uploads/77868.pdf'),
-(9, 15, 'apis (2).sql', 'uploads/apis (2).sql'),
-(10, 16, 'apis (2).sql', 'uploads/apis (2).sql'),
-(11, 17, 'apis (2).sql', 'uploads/apis (2).sql'),
-(12, 18, '77912_3.pdf', 'uploads/77912_3.pdf'),
-(13, 20, 'reddesk.png', 'uploads/reddesk.png'),
-(14, 21, '77995.pdf', 'uploads/77995.pdf');
+(22, 38, '78146_2.pdf', 'uploads/78146_2.pdf'),
+(23, 38, '78149_2.pdf', 'uploads/78149_2.pdf');
 
 -- --------------------------------------------------------
 
@@ -301,7 +290,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `comentarios_tickets`
 --
 ALTER TABLE `comentarios_tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `grupos`
@@ -337,13 +326,13 @@ ALTER TABLE `rol_permisos`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket_archivos`
 --
 ALTER TABLE `ticket_archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

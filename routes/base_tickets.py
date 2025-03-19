@@ -96,6 +96,10 @@ def crear_ticket():
         fecha_estimada=fecha_estimada
     )
 
+    ticket = TicketsQueries.crear_ticket(
+        titulo=titulo,
+    )
+
     return jsonify({
         "message": "Ticket creado exitosamente",
         "ticket_id": ticket.id
@@ -114,6 +118,19 @@ def servir_archivo(nombre_archivo):
         mimetype = 'application/octet-stream'
     
     return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachment=False, mimetype=mimetype)
+
+@base_tickets.route('/api/archivos/<nombre_archivo>', methods=['GET'])
+def servir_archivo(nombre_archivo):
+    archivo_ruta = os.path.join(UPLOAD_FOLDER, nombre_archivo)
+    if not os.path.exist(archivo_ruta):
+        return jsonify({"error": "Archivo no encontrado"}), 404
+    
+    mimetype, _ = mimetypes.guess_type(archivo_ruta)
+    if not mimetype:
+        mimetype = 'application/octet-steam'
+    
+    return send_from_directory(UPLOAD_FOLDER, nombre_archivo, as_attachmen=False, mimetype=mimetype)
+
 
 
 
@@ -214,6 +231,3 @@ def agregar_comentario(ticket_id):
             "usuario": comentario.usuario.nombre
         }
     }), 201
-
-
-
